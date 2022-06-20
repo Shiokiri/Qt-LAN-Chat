@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>icons/bold.svg</file>
+        <file>icons/clear.svg</file>
+        <file>icons/color.svg</file>
+        <file>icons/italic.svg</file>
+        <file>icons/save.svg</file>
+        <file>icons/send.svg</file>
+        <file>icons/underline.svg</file>
+    </qresource>
+</RCC>
