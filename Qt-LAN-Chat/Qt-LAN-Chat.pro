@@ -12,12 +12,15 @@ ICONS +=
 
 SOURCES += \
     main.cpp \
+    tcpserver.cpp \
     widget.cpp
 
 HEADERS += \
+    tcpserver.h \
     widget.h
 
 FORMS += \
+    tcpserver.ui \
     widget.ui
 
 # Default rules for deployment.
@@ -26,7 +29,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 QT += network
-QT += core5compat
 
 RESOURCES += \
 	Images.qrc

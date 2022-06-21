@@ -8,7 +8,6 @@
 #include <QDateTime>
 #include <QNetworkInterface>
 #include <QProcess>
-#include <QRegExp>
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
