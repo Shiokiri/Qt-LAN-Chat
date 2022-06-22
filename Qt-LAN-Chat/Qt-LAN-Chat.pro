@@ -12,12 +12,15 @@ ICONS +=
 
 SOURCES += \
     main.cpp \
+    tcpserver.cpp \
     widget.cpp
 
 HEADERS += \
+    tcpserver.h \
     widget.h
 
 FORMS += \
+    tcpserver.ui \
     widget.ui
 
 # Default rules for deployment.
