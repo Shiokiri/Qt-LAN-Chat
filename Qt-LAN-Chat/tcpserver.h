@@ -1,7 +1,7 @@
 #ifndef TCPSERVER_H
 #define TCPSERVER_H
 
-#include <QDialog>
+#include<QDialog>
 #include<QTcpServer>
 #include<QFile>
 #include<QTcpSocket>
@@ -11,6 +11,7 @@
 #include<QCloseEvent>
 #include<QWidget>
 #include<QKeyEvent>
+#include<QElapsedTimer>
 
 namespace Ui {
 class TcpServer;
@@ -67,7 +68,7 @@ private:
     QString fileName;
 
 
-    QTime time;
+    QElapsedTimer elapsedTimer;
     QByteArray outBlock;
 
 
