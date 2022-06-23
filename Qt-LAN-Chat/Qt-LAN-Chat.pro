@@ -12,14 +12,17 @@ ICONS +=
 
 SOURCES += \
     main.cpp \
+    tcpclient.cpp \
     tcpserver.cpp \
     widget.cpp
 
 HEADERS += \
+    tcpclient.h \
     tcpserver.h \
     widget.h
 
 FORMS += \
+    tcpclient.ui \
     tcpserver.ui \
     widget.ui
 

@@ -35,7 +35,6 @@ TcpServer::~TcpServer()
     delete ui;
 }
 
-
 void TcpServer::initServer()
 {
     payloadSize = 64*1024;
@@ -67,7 +66,7 @@ void TcpServer :: sendMessage()
 
     TotalBytes = localFile -> size();
 
-    QDataStream sendOut(&outBlock,QIODevice::WriteOnly);
+    QDataStream sendOut(&outBlock, QIODevice::WriteOnly);
     sendOut.setVersion(QDataStream::Qt_4_0);
 
     elapsedTimer.start();
@@ -121,8 +120,6 @@ void TcpServer::updateClientProgress(qint64 numBytes)
     }
 
 }
-
-
 
 
 void TcpServer::on_serverOpenBtn_clicked()
