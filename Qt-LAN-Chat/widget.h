@@ -2,7 +2,10 @@
 #define WIDGET_H
 
 #include <QWidget>
+
 class QUdpSocket;
+
+class TcpServer;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -38,14 +41,25 @@ protected:
     QString getUserName();
     QString getMessage();
 
+    void hasPendingFile(QString userName, QString serverAddress,
+                        QString clientAddress, QString fileName);
+
 private:
     Ui::Widget *ui;
     QUdpSocket * udpSocket;
     qint64 port;
 
+    QString fileName;
+    TcpServer * server;
+
+
 private slots:
     void processPendingDatagrams();
 
     void on_sendButton_clicked();
+
+    void getFileName(QString);
+
+    void on_sendToolBtn_clicked();
 };
 #endif // WIDGET_H

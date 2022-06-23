@@ -1,6 +1,10 @@
 #include "widget.h"
 #include "ui_widget.h"
 
+#include "tcpserver.h"
+#include "tcpclient.h"
+#include <QFileDialog>
+
 #include <QUdpSocket>
 #include <QHostInfo>
 #include <QMessageBox>
@@ -13,13 +17,19 @@ Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
 {
-    ui->setupUi(this);
+    ui -> setupUi(this);
 
     udpSocket = new QUdpSocket(this);
     port = 45454;
+
     udpSocket -> bind(port, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+
     connect(udpSocket, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     sendMessage(NewParticipant);
+
+    server = new TcpServer(this);
+    connect(server, SIGNAL(sendFileName(QString)), this, SLOT(getFileName(QString)));
+
 }
 
 Widget::~Widget()
@@ -30,19 +40,24 @@ Widget::~Widget()
 void Widget::sendMessage(MessageType type, QString serverAddress)
 {
     qDebug() << "sendMessage0";
+
     QByteArray data;
     QDataStream out(&data, QIODevice::WriteOnly);
+
     QString localHostName = QHostInfo::localHostName();
     QString address = getIP();
+
     out << type << getUserName() << localHostName;
 
-    qDebug() << localHostName;
-    qDebug() << address;
+    //qDebug() << localHostName;
+    //qDebug() << address;
     qDebug() << "sendMessage1";
 
     switch(type)
     {
         case Message:
+        {
+            qDebug() << "sendMessage Message begin";
             if(ui -> messageTextEdit -> toPlainText() == "")
             {
                 QMessageBox::warning(0,
@@ -54,20 +69,37 @@ void Widget::sendMessage(MessageType type, QString serverAddress)
             out << address << getMessage();
             ui -> messageBrowser -> verticalScrollBar()
                -> setValue(ui -> messageBrowser -> verticalScrollBar() -> maximum());
-        break;
+            qDebug() << "sendMessage Message end";
+            break;
+        }
 
         case NewParticipant:
+        {
             out << address;
-        break;
+            break;
+
+        }
 
         case ParticipantLeft:
-        break;
+        {
+            break;
+        }
 
         case FileName:
-        break;
+        {
+            qDebug() << "sendMessage FileName begin";
+            int row = ui -> userTableWidget -> currentRow();
+            QString clientAddress = ui -> userTableWidget -> item(row, 2) -> text();
+            out << address << clientAddress << fileName;
+            qDebug() << "sendMessage FileName end";
+            break;
+        }
 
         case Refuse:
-        break;
+        {
+            out << serverAddress;
+            break;
+        }
     }
     udpSocket -> writeDatagram(data, data.length(),
                                QHostAddress::Broadcast,
@@ -77,45 +109,79 @@ void Widget::sendMessage(MessageType type, QString serverAddress)
 void Widget::processPendingDatagrams()
 {
     qDebug() << "processPendingDatagrams";
+
     while(udpSocket -> hasPendingDatagrams())
     {
         QByteArray datagram;
+
         datagram.resize(udpSocket -> pendingDatagramSize());
         udpSocket -> readDatagram(datagram.data(), datagram.size());
+
         QDataStream in(&datagram, QIODevice::ReadOnly);
+
         int messageType;
         in >> messageType;
         QString userName, localHostName, ipAddress, message;
+
         QString time = QDateTime::currentDateTime()
                 .toString("yyyy-MM-dd hh:mm:ss");
 
         switch(messageType)
         {
             case Message:
+            {
                 in >> userName >> localHostName >> ipAddress >> message;
+
                 ui -> messageBrowser -> setTextColor(Qt::blue);
                 ui -> messageBrowser -> setCurrentFont(QFont("Times New Roman", 12));
                 ui -> messageBrowser -> append("[ " + userName + " ] " + time);
                 ui -> messageBrowser -> append(message);
-            break;
+
+                break;
+            }
 
             case NewParticipant:
+            {
                 in >> userName >> localHostName >> ipAddress;
                 newParticipant(userName, localHostName, ipAddress);
-            break;
+                break;
+
+            }
 
             case ParticipantLeft:
+            {
                 in >> userName >> localHostName;
                 participantLeft(userName, localHostName, time);
-            break;
+                break;
+            }
 
             case FileName:
-            break;
+            {
+                qDebug() << "FileName1";
+                in >> userName >> localHostName >> ipAddress;
+                QString clientAddress, fileName;
+                in >> clientAddress >> fileName;
+                qDebug() << "FileName2";
+                hasPendingFile(userName, ipAddress, clientAddress, fileName);
+                qDebug() << "FileName end";
+                break;
+            }
 
             case Refuse:
-            break;
+            {
+                in >> userName >> localHostName;
+                QString serverAddress;
+                in >> serverAddress;
+                QString ipAddress = getIP();
+                if(ipAddress == serverAddress)
+                {
+                    server -> refused();
+                }
+                break;
+            }
 
         }
+
     }
 
 }
@@ -123,8 +189,10 @@ void Widget::processPendingDatagrams()
 void Widget::newParticipant(QString userName, QString localHostName, QString ipAddress)
 {
     qDebug() << "newParticipant";
+
     bool isEmpty = ui -> userTableWidget
             -> findItems(localHostName, Qt::MatchExactly).isEmpty();
+
     if(isEmpty)
     {
         QTableWidgetItem * user = new QTableWidgetItem(userName);
@@ -172,19 +240,14 @@ QString Widget::getIP()
 
 QString Widget::getUserName()
 {
-    /*
-    QStringList envVariables;
-    envVariables << "USERNAME.*" << "USER.*" << "USERDOMAIN.*"
-                 << "HOSTNAME.*" << "DOMAINNAME.*";
-    */
     QStringList environment = QProcess::systemEnvironment();
     QStringList userNameList = environment.filter("USERNAME");
+
     foreach(QString string, userNameList)
     {
        QStringList stringList = string.split('=');
        if(stringList.size() == 2 && stringList.at(0) == "USERNAME")
        {
-            //qDebug() << stringList.at(1);
             return stringList.at(1);
             break;
        }
@@ -195,8 +258,10 @@ QString Widget::getUserName()
 QString Widget::getMessage()
 {
     QString msg = ui -> messageTextEdit -> toHtml();
+
     ui -> messageTextEdit -> clear();
     ui -> messageTextEdit -> setFocus();
+
     return msg;
 }
 
@@ -205,3 +270,59 @@ void Widget::on_sendButton_clicked()
     sendMessage(Message);
 }
 
+void Widget::getFileName(QString name)
+{
+    qDebug() << "getFileName";
+    fileName = name;
+    sendMessage(FileName);
+}
+
+void Widget::on_sendToolBtn_clicked()
+{
+    if(ui -> userTableWidget -> selectedItems().isEmpty())
+    {
+        QMessageBox::warning(0, tr("选择用户"),
+                             tr("请先从用户列表选择要传送的用户！"), QMessageBox::Ok);
+        return;
+    }
+    server -> show();
+    server -> initServer();
+
+}
+
+void Widget::hasPendingFile(QString userName,
+                            QString serverAddress,
+                            QString clientAddress,
+                            QString fileName)
+{
+
+    qDebug() << "hasPendingFile";
+
+    QString ipAddress = getIP();
+
+    if(ipAddress == clientAddress)
+    {
+        int btn = QMessageBox::information(this, tr("接收文件"),
+                                           tr("来自%1(%2)的文件：%3，是否接收？")
+                                           .arg(userName).arg(serverAddress).arg(fileName),
+                                           QMessageBox::Yes, QMessageBox::No);
+        if(btn == QMessageBox::Yes)
+        {
+            qDebug() << "hasPendingFile Yes";
+            QString name = QFileDialog::getSaveFileName(0, tr("保存文件"), fileName);
+            if(!name.isEmpty())
+            {
+                TcpClient * client = new TcpClient(this);
+                client -> setFileName(name);
+                client -> setHostAddress(QHostAddress(serverAddress));
+                client -> show();
+            }
+        }
+        else
+        {
+            sendMessage(Refuse, serverAddress);
+        }
+    }
+
+    qDebug() << "hasPendingFile end";
+}

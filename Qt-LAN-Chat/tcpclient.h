@@ -41,6 +41,8 @@ private slots:
 
     void newConnect();
 
+    void on_tcpClientCancelBtn_clicked();
+
 private:
     Ui::TcpClient *ui;
 

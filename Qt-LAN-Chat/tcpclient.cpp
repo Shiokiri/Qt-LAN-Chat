@@ -5,6 +5,8 @@
 
 TcpClient::TcpClient(QWidget *parent) :
     QDialog(parent),
+    tcpClient(nullptr),
+    localFile(nullptr),
     ui(new Ui::TcpClient)
 {
     ui->setupUi(this);
@@ -13,13 +15,14 @@ TcpClient::TcpClient(QWidget *parent) :
     bytesReceived = 0;
     fileNameSize = 0;
     tcpClient = new QTcpSocket(this);
-    tcpPort = 6666;
-    connect(tcpClient,SIGNAL(readyRead()),
-                this,SLOT(readMessage()));
-    connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),
-                this,SLOT(displayError(QAbstractSocket::SocketError)));
-}
+    tcpPort = 10006;
 
+    connect(tcpClient, SIGNAL(readyRead()),
+                this, SLOT(readMessage()));
+    //connect(tcpClient, SIGNAL(QAbstractSocket::SocketError),
+    //            this, SLOT(Dialog(QAbstractSocket::SocketError)));
+
+}
 TcpClient::~TcpClient()
 {
     delete ui;
@@ -50,6 +53,7 @@ void TcpClient::newConnect()
 
 void TcpClient::readMessage()
 {
+    qDebug() << "readMessage";
     QDataStream in(tcpClient);
     in.setVersion(QDataStream::Qt_4_0);
 
@@ -57,16 +61,16 @@ void TcpClient::readMessage()
 
     if(bytesReceived <= sizeof(qint64)*2)
     {
-        if((tcpClient->bytesAvailable() >= sizeof(qint64)*2) && (fileNameSize ==0))
+        if((tcpClient -> bytesAvailable() >= sizeof(qint64)*2) && (fileNameSize ==0))
         {
             in >> TotalBytes >> fileNameSize;
             bytesReceived += sizeof(qint64)*2;
         }
-        if((tcpClient->bytesAvailable() >= fileNameSize) && (fileNameSize!=0))
+        if((tcpClient -> bytesAvailable() >= fileNameSize) && (fileNameSize!=0))
         {
             in >> fileName;
             bytesReceived += fileNameSize;
-            if(! localFile->open(QFile::WriteOnly))
+            if(! localFile -> open(QFile::WriteOnly))
             {
                 QMessageBox::warning(this,tr("应用程序"),tr("无法读取文件 %1:\n%2.")
                                      .arg(fileName)
@@ -83,13 +87,13 @@ void TcpClient::readMessage()
     {
         bytesReceived += tcpClient->bytesAvailable();
         inBlock = tcpClient->readAll();
-        localFile->write(inBlock);
+        localFile -> write(inBlock);
         inBlock.resize(0);
 
     }
 
-    ui->progressBar->setMaximum(TotalBytes);
-    ui->progressBar->setValue(bytesReceived);
+    ui -> progressBar -> setMaximum(TotalBytes);
+    ui -> progressBar -> setValue(bytesReceived);
 
     double speed = bytesReceived / useTime;
     ui->tcpClientStatusLabel->setText(tr("已接收 %1MB( %2MB/s)"
@@ -101,9 +105,9 @@ void TcpClient::readMessage()
                                       .arg(TotalBytes/speed/1000 - useTime/1000,0,'f',0 ));
     if(bytesReceived == TotalBytes)
     {
-       localFile ->close();
-       tcpClient->close();
-       ui->tcpClientStatusLabel->setText(tr("接收文件: %1完毕").arg(fileName));
+       localFile -> close();
+       tcpClient-> close();
+       ui->tcpClientStatusLabel -> setText(tr("接收文件: %1完毕").arg(fileName));
 
     }
 
@@ -116,29 +120,26 @@ void TcpClient::displayError(QAbstractSocket::SocketError  sockError)
     case QAbstractSocket::RemoteHostClosedError:
         break;
     default:
-        qDebug() << tcpClient->errorString();
+        qDebug() << tcpClient -> errorString();
     }
-
-
 
 }
 
-
-void TcpClient::on_tcpClientCancleBtn_clicked()
+void TcpClient::on_tcpClientCancelBtn_clicked()
 {
-    tcpClient->abort();
-   if(localFile->isOpen())
+    tcpClient -> abort();
+    if(localFile -> isOpen())
     {
-        localFile->close();
+        localFile -> close();
     }
     close();
-    ui->~TcpClient();
-
+    ui -> ~TcpClient();
 }
+
 
 void TcpClient::on_tcpClientCloseBtn_clicked()
 {
-   on_tcpClientCancleBtn_clicked();
+    on_tcpClientCancelBtn_clicked();
 
 }
 
