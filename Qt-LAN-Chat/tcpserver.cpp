@@ -21,8 +21,9 @@ TcpServer::TcpServer(QWidget *parent) :
 {
     setFixedSize(350,180);
 
-    tcpPort = 6666 ;
+    tcpPort = 6666;
     tcpServer = new QTcpServer(this);
+
     connect(tcpServer, SIGNAL(newconnection()),this,SLOT(sendMessage()()));
 
     initServer();
@@ -41,10 +42,12 @@ void TcpServer::initServer()
     TotalBytes = 0 ;
     bytesWritten = 0;
     bytestoWrite = 0;
+
     ui -> serverStatusLabel -> setText(tr("请选择要传送的文件"));
     ui -> progressBar -> reset();
     ui -> serverOpenBtn -> setEnabled(true);
     ui -> serverSendBtn -> setEnabled(false);
+
     tcpServer -> close();
 }
 
@@ -55,7 +58,7 @@ void TcpServer :: sendMessage()
     connect(clientConnection, SIGNAL(bytesWritten(qint64)),
             this,SLOT(updateClientProgress(qint64)));
 
-    ui ->serverStatusLabel -> setText(tr("开始传送文件%1!").arg(theFileName));
+    ui -> serverStatusLabel -> setText(tr("开始传送文件%1!").arg(theFileName));
 
     localFile = new QFile(fileName);
     if(!localFile ->open((QFile::ReadOnly))){
@@ -85,7 +88,7 @@ void TcpServer :: sendMessage()
 
 void TcpServer::updateClientProgress(qint64 numBytes)
 {
-    qApp->processEvents();
+    qApp -> processEvents();
     bytesWritten +=(int) numBytes;
     if(bytestoWrite > 0)
     {

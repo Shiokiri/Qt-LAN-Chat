@@ -1,18 +1,16 @@
 #ifndef TCPCLIENT_H
 #define TCPCLIENT_H
 
-#include<QDialog>
-#include<QTcpServer>
-#include<QFile>
-#include<QTcpSocket>
-#include<QTime>
-#include<QFileDialog>
-#include<QString>
-#include<QCloseEvent>
-#include<QWidget>
-#include<QKeyEvent>
-#include<QHostAddress>
-#include<QElapsedTimer>
+#include <QDialog>
+#include <QTcpServer>
+#include <QFile>
+#include <QTcpSocket>
+#include <QTime>
+#include <QFileDialog>
+#include <QString>
+#include <QCloseEvent>
+#include <QHostAddress>
+#include <QElapsedTimer>
 
 namespace Ui {
 class TcpClient;
@@ -23,16 +21,15 @@ class TcpClient : public QDialog
     Q_OBJECT
 
 public:
-    explicit TcpClient(QWidget *parent = 0);
+    explicit TcpClient(QWidget *parent = nullptr);
     ~TcpClient();
-
 
     void setFileName(QString fileName);
     void setHostAddress(QHostAddress address);
 
     void closeEvent(QCloseEvent *);
 
-     QFile *localFile;
+    QFile *localFile;
 
 private slots:
     void on_tcpClientCancleBtn_clicked();
@@ -43,7 +40,6 @@ private slots:
     void displayError(QAbstractSocket::SocketError);
 
     void newConnect();
-
 
 private:
     Ui::TcpClient *ui;

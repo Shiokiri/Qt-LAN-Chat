@@ -1,26 +1,13 @@
 #include "tcpclient.h"
 #include "ui_tcpclient.h"
 
-#include<QHostInfo>
-#include<QMessageBox>
-#include<QDateTime>
-#include<QProcess>
-#include<QDataStream>
-#include<QScrollBar>
-#include<QFont>
-#include<QNetworkInterface>
-#include<QStringList>
-#include<QDebug>
+#include <QMessageBox>
 
 TcpClient::TcpClient(QWidget *parent) :
     QDialog(parent),
-    tcpClient(nullptr),
-    localFile(nullptr),
     ui(new Ui::TcpClient)
 {
     ui->setupUi(this);
-
-
 
     TotalBytes = 0;
     bytesReceived = 0;
@@ -28,10 +15,9 @@ TcpClient::TcpClient(QWidget *parent) :
     tcpClient = new QTcpSocket(this);
     tcpPort = 6666;
     connect(tcpClient,SIGNAL(readyRead()),
-            this,SLOT(readMessage()));
+                this,SLOT(readMessage()));
     connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),
-            this,SLOT(displayError(QAbstractSocket::SocketError)));
-
+                this,SLOT(displayError(QAbstractSocket::SocketError)));
 }
 
 TcpClient::~TcpClient()

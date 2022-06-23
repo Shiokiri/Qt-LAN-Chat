@@ -11,11 +11,15 @@
 #include<QCloseEvent>
 #include<QWidget>
 #include<QKeyEvent>
+#include<QHostAddress>
 #include<QElapsedTimer>
 
-namespace Ui {
-class TcpServer;
+QT_BEGIN_NAMESPACE
+namespace Ui
+{
+    class TcpServer;
 }
+QT_END_NAMESPACE
 
 class QTcpServer;
 class QTcpSocket;
@@ -25,32 +29,28 @@ class TcpServer : public QDialog
     Q_OBJECT
 
 public:
-    explicit TcpServer(QWidget *parent = 0);
+    explicit TcpServer(QWidget *parent = nullptr);
     ~TcpServer();
+
     void initServer();
 
     void refused();
 
-
 protected:
-
     void closeEvent(QCloseEvent *);
 
 signals:
    void sendFileName(QString );
 
 private slots:
-
-
     void on_serverOpenBtn_clicked();
-
     void on_serverSendBtn_clicked();
-
     void on_serverCloseBtn_clicked();
 
     void sendMessage();
 
-    void updateClientProgress(qint64 );
+    void updateClientProgress(qint64);
+
 private:
     Ui::TcpServer *ui;
 
@@ -70,12 +70,6 @@ private:
 
     QElapsedTimer elapsedTimer;
     QByteArray outBlock;
-
-
-
-
-
-
 
 };
 
