@@ -2,6 +2,8 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <QColorDialog>
+#include <QTextCharFormat>
 
 class QUdpSocket;
 
@@ -44,6 +46,10 @@ protected:
     void hasPendingFile(QString userName, QString serverAddress,
                         QString clientAddress, QString fileName);
 
+    bool saveFile(const QString &fileName);
+
+    void closeEvent(QCloseEvent *);
+
 private:
     Ui::Widget *ui;
     QUdpSocket * udpSocket;
@@ -51,6 +57,8 @@ private:
 
     QString fileName;
     TcpServer * server;
+
+    QColor color;
 
 
 private slots:
@@ -61,5 +69,18 @@ private slots:
     void getFileName(QString);
 
     void on_sendToolBtn_clicked();
+    void on_fontComboBox_currentFontChanged(const QFont &f);
+    void on_sizeComboBox_currentIndexChanged(int index);
+    void on_sizeComboBox_currentTextChanged(const QString &arg1);
+    void on_boldToolBtn_clicked(bool checked);
+    void on_italicToolBtn_clicked(bool checked);
+    void on_underlineToolBtn_clicked(bool checked);
+    void on_colorToolBtn_clicked();
+
+    void currentFormatChanged(const QTextCharFormat &format);
+
+    void on_saveToolBtn_clicked();
+    void on_clearToolBtn_clicked();
+    void on_exitButton_clicked();
 };
 #endif // WIDGET_H

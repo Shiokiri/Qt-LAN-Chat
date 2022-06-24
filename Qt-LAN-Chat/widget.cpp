@@ -205,7 +205,7 @@ void Widget::newParticipant(QString userName, QString localHostName, QString ipA
         ui -> userTableWidget -> setItem(0, 2, ip);
 
         ui -> messageBrowser -> setTextColor(Qt::gray);
-        ui -> messageBrowser -> setCurrentFont(QFont("Times New Roman", 10));
+        ui -> messageBrowser -> setCurrentFont(QFont("Microsoft YaHei UI", 10));
         ui -> messageBrowser -> append(tr("%1在线！").arg(userName));
 
         ui -> userNumLabel -> setText(tr("在线人数：%1")
@@ -221,7 +221,7 @@ void Widget::participantLeft(QString userName, QString localHostName, QString ti
                                                     Qt::MatchExactly).first() -> row();
     ui -> userTableWidget -> removeRow(rowNum);
     ui -> messageBrowser -> setTextColor(Qt::gray);
-    ui -> messageBrowser -> setCurrentFont(QFont("Times New Roman", 10));
+    ui -> messageBrowser -> setCurrentFont(QFont("Microsoft YaHei UI", 10));
     ui -> messageBrowser -> append(tr("%1于%2离开！").arg(userName).arg(time));
     ui -> userNumLabel -> setText(tr("在线人数：%1")
                                   .arg(ui -> userTableWidget -> rowCount()));
@@ -326,3 +326,131 @@ void Widget::hasPendingFile(QString userName,
 
     qDebug() << "hasPendingFile end";
 }
+
+void Widget::on_fontComboBox_currentFontChanged(const QFont &f)
+{
+    ui -> messageTextEdit -> setCurrentFont(f);
+    ui -> messageTextEdit -> setFocus();
+}
+
+void Widget::on_sizeComboBox_currentTextChanged(const QString &size)
+{
+    ui -> messageTextEdit -> setFontPointSize(size.toDouble());
+    ui -> messageTextEdit -> setFocus();
+}
+
+
+void Widget::on_boldToolBtn_clicked(bool checked)
+{
+    if(checked)
+    {
+        ui -> messageTextEdit -> setFontWeight(QFont::Bold);
+    }
+    else
+    {
+        ui -> messageTextEdit -> setFontWeight(QFont::Normal);
+    }
+    ui -> messageTextEdit -> setFocus();
+}
+
+
+void Widget::on_italicToolBtn_clicked(bool checked)
+{
+    ui -> messageTextEdit -> setFontItalic(checked);
+    ui -> messageTextEdit -> setFocus();
+}
+
+
+void Widget::on_underlineToolBtn_clicked(bool checked)
+{
+    ui -> messageTextEdit -> setFontUnderline(checked);
+    ui -> messageTextEdit -> setFocus();
+}
+
+
+void Widget::on_colorToolBtn_clicked()
+{
+    color = QColorDialog::getColor(color, this);
+    if(color.isValid())
+    {
+        ui -> messageTextEdit -> setTextColor(color);
+        ui -> messageTextEdit -> setFocus();
+    }
+}
+
+
+void Widget::currentFormatChanged(const QTextCharFormat &format)
+{
+    ui -> fontComboBox -> setCurrentFont(format.font());
+
+    if(format.fontPointSize() < 10)
+    {
+        ui -> sizeComboBox -> setCurrentIndex(3);
+    }
+    else
+    {
+        ui -> sizeComboBox -> setCurrentIndex(ui -> sizeComboBox
+                                            -> findText(QString::number(format.fontPointSize())));
+    }
+
+    ui -> boldToolBtn -> setChecked(format.font().bold());
+    ui -> italicToolBtn -> setChecked(format.font().italic());
+    ui -> underlineToolBtn -> setChecked(format.font().underline());
+
+    color = format.foreground().color();
+}
+
+
+void Widget::on_saveToolBtn_clicked()
+{
+    if(ui -> messageBrowser -> document() -> isEmpty())
+    {
+        QMessageBox::warning(0, tr("警告"),
+                             tr("聊天记录为空，无法保存！"), QMessageBox::Ok);
+    }
+    else
+    {
+        QString fileName = QFileDialog::getSaveFileName(this,
+        tr("保存聊天记录"), tr("聊天记录"), tr("文本(*.txt);;All File(*.*)"));
+        if(! fileName.isEmpty())
+        {
+            saveFile(fileName);
+        }
+    }
+}
+
+
+bool Widget::saveFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if(! file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, tr("保存文件"),
+                             tr("无法保存文件%1:\n%2")
+                             .arg(fileName).arg(file.errorString()));
+        return false;
+    }
+    QTextStream out(&file);
+    out << ui -> messageBrowser -> toPlainText();
+    return true;
+}
+
+
+void Widget::on_clearToolBtn_clicked()
+{
+    ui -> messageBrowser -> clear();
+}
+
+
+void Widget::on_exitButton_clicked()
+{
+    close();
+}
+
+
+void Widget::closeEvent(QCloseEvent * e)
+{
+    sendMessage(ParticipantLeft);
+    QWidget::closeEvent(e);
+}
+
