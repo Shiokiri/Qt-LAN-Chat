@@ -39,8 +39,6 @@ Widget::~Widget()
 
 void Widget::sendMessage(MessageType type, QString serverAddress)
 {
-    qDebug() << "sendMessage0";
-
     QByteArray data;
     QDataStream out(&data, QIODevice::WriteOnly);
 
@@ -49,15 +47,10 @@ void Widget::sendMessage(MessageType type, QString serverAddress)
 
     out << type << getUserName() << localHostName;
 
-    //qDebug() << localHostName;
-    //qDebug() << address;
-    qDebug() << "sendMessage1";
-
     switch(type)
     {
         case Message:
         {
-            qDebug() << "sendMessage Message begin";
             if(ui -> messageTextEdit -> toPlainText() == "")
             {
                 QMessageBox::warning(0,
@@ -69,7 +62,6 @@ void Widget::sendMessage(MessageType type, QString serverAddress)
             out << address << getMessage();
             ui -> messageBrowser -> verticalScrollBar()
                -> setValue(ui -> messageBrowser -> verticalScrollBar() -> maximum());
-            qDebug() << "sendMessage Message end";
             break;
         }
 
@@ -87,11 +79,9 @@ void Widget::sendMessage(MessageType type, QString serverAddress)
 
         case FileName:
         {
-            qDebug() << "sendMessage FileName begin";
             int row = ui -> userTableWidget -> currentRow();
             QString clientAddress = ui -> userTableWidget -> item(row, 2) -> text();
             out << address << clientAddress << fileName;
-            qDebug() << "sendMessage FileName end";
             break;
         }
 

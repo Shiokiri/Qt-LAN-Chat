@@ -88,7 +88,6 @@ void TcpServer :: sendMessage()
 
     TotalBytes += outBlock.size();
     sendOut.device() -> seek(0);
-
     sendOut << TotalBytes << qint64((outBlock.size() - sizeof(qint64)*2));
 
     bytestoWrite = TotalBytes - clientConnection -> write(outBlock);
